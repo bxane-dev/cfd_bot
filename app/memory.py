@@ -5,12 +5,13 @@ import json
 import math
 import re
 import sqlite3
+import os
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(os.getenv("CFD_ROOT") or Path(__file__).resolve().parents[1]).resolve()
 LOG_DIR = ROOT / "logs"
 MEM_PATH = LOG_DIR / "memory.jsonl"
 DB_PATH = LOG_DIR / "memory.db"
