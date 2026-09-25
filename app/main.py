@@ -23,7 +23,7 @@ from news import news_signal
 from predict import forecast, agree
 from streamers import streamer_signal
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(os.getenv("CFD_ROOT") or Path(__file__).resolve().parents[1]).resolve()
 LOG_DIR = ROOT / "logs"
 STATE_PATH = LOG_DIR / "state.json"
 TRADES_PATH = LOG_DIR / "trades.csv"
@@ -64,7 +64,7 @@ def enabled_markets(cfg: dict, mode: str | None = None) -> list[Market]:
     use_live_scope = effective_mode == "live" or (effective_mode == "demo" and demo_scope == "live")
     out = []
     for key, market in MARKETS.items():
-        spec = flags.get(key, True)
+        spec = flags.get(key, False)
         enabled = spec if isinstance(spec, bool) else spec.get("enabled", True)
         if not enabled:
             continue
@@ -801,7 +801,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Capital.com: DE40 / US100 / US30 / GOLD")
     parser.add_argument("--mode", choices=["demo", "live"], default=os.getenv("MODE") or cfg.get("mode", "demo"))
     parser.add_argument("--once", action="store_true")
-    parser.add_argument("--only", nargs="*", choices=list(MARKETS.keys()))
+    available_keys = [m.key for m in enabled_markets(cfg, parser.get_default("mode"))]
+    parser.add_argument("--only", nargs="*", choices=available_keys)
     args = parser.parse_args()
 
     markets = enabled_markets(cfg, args.mode)
