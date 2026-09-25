@@ -1,0 +1,41 @@
+{
+  "name": "cfd-bot-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CFD Bot desktop trading desk for US100, US30, Germany 40 and Gold",
+  "main": "desktop/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "dev.bxane.cfdbot",
+    "productName": "CFD Bot",
+    "asar": true,
+    "directories": { "output": "release" },
+    "files": ["desktop/main.cjs", "package.json"],
+    "extraResources": [
+      { "from": "dist_backend", "to": "backend" },
+      { "from": "web", "to": "web" },
+      { "from": "config.yaml", "to": "defaults/config.yaml" },
+      { "from": ".env.example", "to": "defaults/.env.example" },
+      { "from": "build/icon.png", "to": "build/icon.png" }
+    ],
+    "win": {
+      "target": ["nsis"],
+      "icon": "build/icon.ico",
+      "artifactName": "CFD-Bot-${version}-Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}
