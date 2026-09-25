@@ -14,8 +14,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-ROOT = Path(__file__).resolve().parents[1]
-WEB = ROOT / "web"
+ROOT = Path(os.getenv("CFD_ROOT") or Path(__file__).resolve().parents[1]).resolve()
+WEB = Path(os.getenv("CFD_WEB_ROOT") or (ROOT / "web")).resolve()
 HOST = os.getenv("CFD_WEB_HOST", "127.0.0.1").strip() or "127.0.0.1"
 PORT = 8484
 CONTROL_TOKEN = os.getenv("CFD_WEB_TOKEN", "").strip() or secrets.token_urlsafe(24)
