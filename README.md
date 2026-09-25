@@ -114,7 +114,8 @@ python -m app.main --mode live
 
 Main settings live in `config.yaml`.
 
-- `risk.risk_per_trade_pct`: target cash risk per trade. This build defaults to **5%** in both demo and live. This is high risk for leveraged CFDs.
+- `execution.demo_frequency.risk.risk_per_trade_pct`: demo-only simulated risk; this build uses **5%** in Demo.
+- `risk.risk_per_trade_pct`: base/live risk setting; retained at **0.4%**. The Electron desktop's Live mode is read-only monitoring and does not send orders.
 - `risk.max_portfolio_allocation_pct`: estimated open broker-margin cap as a percentage of equity (default: 30%).
 - `risk.daily_loss_enabled`: turn the automatic daily-loss halt on/off.
 - `risk.max_daily_loss_pct`: daily halt threshold when enabled.
@@ -145,7 +146,7 @@ These are defaults, not guaranteed “best” strategies. Walk-forward/holdout v
 
 Run `build.bat`. It generates the app icon, bundles the Python backend with PyInstaller, installs Electron dependencies, and produces an NSIS installer under `release\`.
 
-The Electron app asks for **Demo** or **Live** at startup. Live mode requires a second explicit confirmation. Runtime configuration, logs, and `.env` are kept in the app user-data folder.
+The Electron app asks for **Demo** or **Live monitor** at startup. Demo uses the 5% simulated risk override; the desktop Live mode is read-only and does not send orders. Runtime configuration, logs, and `.env` are kept in the app user-data folder.
 
 ## Walk-forward analysis
 
