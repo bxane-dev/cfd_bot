@@ -432,6 +432,28 @@
       font-weight: 700;
     }
     .expand-link:hover { color: var(--text); }
+    .card-actions { display:flex; align-items:center; gap:10px; }
+    .explain-card {
+      width:min(760px, 100%);
+      max-height:88vh;
+      overflow:auto;
+      background:#0c1118;
+      border:1px solid var(--line);
+      border-radius:16px;
+      box-shadow:0 24px 80px rgba(0,0,0,.52);
+    }
+    .explain-body { padding:18px; display:grid; gap:12px; }
+    .explain-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .explain-block {
+      border:1px solid var(--line-soft);
+      border-radius:11px;
+      background:#0a0f15;
+      padding:12px;
+    }
+    .explain-k { color:var(--muted-2); font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; margin-bottom:6px; }
+    .explain-v { color:var(--text); font-size:12px; line-height:1.55; }
+    .explain-note { color:#f5c878; border-color:rgba(245,189,88,.25); background:var(--amber-soft); }
+    @media (max-width:700px) { .explain-grid { grid-template-columns:1fr; } }
 
     .decision-line {
       margin: 5px 14px 2px;
@@ -936,6 +958,19 @@
     </div>
   </div>
 
+  <div class="inspect" id="explain" onclick="if(event.target.id==='explain') closeExplain()">
+    <div class="explain-card">
+      <div class="inspect-head">
+        <div>
+          <h2 class="inspect-title" id="explain-title">Why this decision?</h2>
+          <div class="inspect-sub" id="explain-sub">Market decision breakdown</div>
+        </div>
+        <div class="actions"><button class="btn" onclick="closeExplain()">Close</button></div>
+      </div>
+      <div class="explain-body" id="explain-body"></div>
+    </div>
+  </div>
+
   <script>
     const queryToken = new URLSearchParams(window.location.search).get('token') || '';
     const savedToken = window.sessionStorage.getItem('cfdControlToken') || '';
@@ -950,6 +985,7 @@
       lastCharts: null,
       hover: {},
       inspectKey: null,
+      explainKey: null,
       busy: false,
       controlToken,
     };
@@ -1233,7 +1269,10 @@
                   <span class="legend-item"><span class="legend-dot" style="background:#66a8ff"></span>Fast EMA</span>
                   <span class="legend-item"><span class="legend-dot" style="background:#a987ff"></span>Slow EMA</span>
                 </div>
-                <button class="expand-link" onclick="inspect('${esc(m.key)}')">Expand ↗</button>
+                <div class="card-actions">
+                  <button class="expand-link" onclick="explainMarket('${esc(m.key)}')">Explain</button>
+                  <button class="expand-link" onclick="inspect('${esc(m.key)}')">Expand ↗</button>
+                </div>
               </div>
               <div class="decision-line" id="decision-${esc(m.key)}">Waiting for scan</div>
               <div class="crowd-line neutral" id="crowd-${esc(m.key)}">STREAMERS · waiting for a technical setup</div>
@@ -1508,6 +1547,53 @@
       $('inspect-hover').textContent = '';
     }
 
+    const STRATEGY_EXPLAIN = {
+      ustech100: { label: 'EMA pullback', how: 'Looks for an established fast-vs-slow EMA trend, then waits for price to pull back toward the trend instead of chasing an extended move. RSI and ATR-based distance checks help reject weak or overextended entries.' },
+      wallstreet30: { label: 'MACD trend', how: 'Uses MACD momentum in the direction of the broader move. A setup needs trend/momentum agreement before the bot builds ATR-based stop and target distances.' },
+      germany40: { label: 'Opening Range Breakout', how: 'Builds the Germany 40 opening range, then waits for a valid break beyond that range during the configured entry window. This is designed for the higher activity around the European cash open.' },
+      gold: { label: 'RSI reversion', how: 'Looks for stretched RSI conditions while limiting entries when the underlying slope is too strong. The aim is to trade a controlled snap-back rather than blindly fading every strong move.' }
+    };
+
+    function explainMarket(key) {
+      const market = ((state.status || {}).markets || []).find(m => m.key === key);
+      if (!market) return;
+      state.explainKey = key;
+      const decision = market.decision || {};
+      const crowd = market.streamers || {};
+      const risk = (state.status || {}).risk || {};
+      const spec = STRATEGY_EXPLAIN[key] || { label: 'Configured strategy', how: 'Uses the configured technical strategy and the common risk/quality filters.' };
+      const stage = String(decision.stage || 'waiting').replaceAll('_', ' ');
+      const reason = String(decision.reason || 'No completed evaluation yet.');
+      const status = String(decision.status || 'waiting').replaceAll('_', ' ');
+      const votes = Number(crowd.votes || 0);
+      const crowdText = votes
+        ? ((crowd.side || 'neutral').toUpperCase() + ' · ' + Number(crowd.buy_votes || 0) + ' buy / ' + Number(crowd.sell_votes || 0) + ' sell · ' + Math.round(Number(crowd.confidence || 0) * 100) + '%')
+        : 'No usable creator consensus for the current setup.';
+      const perTrade = risk.per_trade == null ? '—' : risk.per_trade + '%';
+      const rules = market.broker_rules || {};
+
+      $('explain-title').textContent = market.name + ' · ' + spec.label;
+      $('explain-sub').textContent = 'Current decision: ' + status.toUpperCase() + ' · stage ' + stage;
+      $('explain-body').innerHTML = `
+        <div class="explain-block">
+          <div class="explain-k">Why</div>
+          <div class="explain-v"><strong>${esc(reason)}</strong><br>The decision shown here is the latest completed gate for this market. If it is blocked, this is the specific reason the order was stopped.</div>
+        </div>
+        <div class="explain-grid">
+          <div class="explain-block"><div class="explain-k">How the strategy works</div><div class="explain-v">${esc(spec.how)}</div></div>
+          <div class="explain-block"><div class="explain-k">Risk / SL / TP</div><div class="explain-v">Target risk per trade: <strong>${esc(perTrade)}</strong>. Position size is calculated from account equity, stop distance, point/contract value and broker lot rules. Stops and targets are strategy/ATR based, then spread and portfolio-allocation checks can still veto the order.</div></div>
+          <div class="explain-block"><div class="explain-k">Extra confirmation</div><div class="explain-v">Streamer consensus: ${esc(crowdText)}. News can veto a strong opposing setup. The predictor and quality filter can reject weak reward/risk, excessive spread, or strongly conflicting direction.</div></div>
+          <div class="explain-block"><div class="explain-k">Broker limits</div><div class="explain-v">Min lot ${esc(rules.min_lot ?? '—')} · max lot ${esc(rules.max_lot ?? '—')} · step ${esc(rules.lot_step ?? '—')}. Market-session, open-position, index-correlation and portfolio-margin limits are checked before an order is sent.</div></div>
+        </div>
+        <div class="explain-block explain-note"><div class="explain-k">What would invalidate it</div><div class="explain-v">A closed session, excessive spread, opposite high-confidence news, failed setup quality, position/risk limits, duplicate-candle protection, or broker rejection will stop the trade. A strategy signal is not a guarantee of profit.</div></div>`;
+      $('explain').classList.add('open');
+    }
+
+    function closeExplain() {
+      $('explain').classList.remove('open');
+      state.explainKey = null;
+    }
+
     async function refresh() {
       try {
         const [status, charts] = await Promise.all([
@@ -1551,7 +1637,7 @@
     }
 
     document.addEventListener('keydown', event => {
-      if (event.key === 'Escape') closeInspect();
+      if (event.key === 'Escape') { closeInspect(); closeExplain(); }
     });
 
     refresh();
