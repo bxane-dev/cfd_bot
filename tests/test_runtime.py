@@ -1,5 +1,7 @@
 import copy
 import unittest
+from pathlib import Path
+import yaml
 
 import app  # noqa: F401 - keeps legacy top-level imports available
 
@@ -94,6 +96,15 @@ class RuntimeRegressionTests(unittest.TestCase):
         self.assertEqual(demo["news"]["min_confidence"], 0.68)
         self.assertEqual(live["quality"]["min_reward_risk"], 1.05)
         self.assertEqual(live["news"]["min_confidence"], 0.62)
+
+    def test_desktop_config_exposes_only_four_markets_at_five_percent_risk(self):
+        cfg = yaml.safe_load((Path(__file__).resolve().parents[1] / "config.yaml").read_text(encoding="utf-8"))
+        demo_keys = {m.key for m in enabled_markets(cfg, "demo")}
+        live_keys = {m.key for m in enabled_markets(cfg, "live")}
+        expected = {"ustech100", "wallstreet30", "germany40", "gold"}
+        self.assertEqual(demo_keys, expected)
+        self.assertEqual(live_keys, expected)
+        self.assertEqual(float(cfg["risk"]["risk_per_trade_pct"]), 5.0)
 
     def test_no_profitable_strategy_returns_no_winner(self):
         rows = [
