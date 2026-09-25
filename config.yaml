@@ -1,5 +1,5 @@
 mode: demo  # demo | live  (Capital.com)
-desk: strategy-market-21
+desk: four-market-electron
 
 execution:
   # Demo is deliberately more active for testing, but keeps the same
@@ -35,72 +35,21 @@ execution:
       predictor_opposite_p: 0.68
       predictor_opposite_edge: 0.05
 
-# One market assignment per registered strategy. The original four are
-# live-enabled; extra markets remain available for explicit demo research.
+# The desktop build deliberately exposes only these four markets.
+# Demo and live share exactly the same market universe.
 markets:
-  germany40:
-    enabled: true
-    live_enabled: true
   ustech100:
     enabled: true
     live_enabled: true
   wallstreet30:
     enabled: true
     live_enabled: true
+  germany40:
+    enabled: true
+    live_enabled: true
   gold:
     enabled: true
     live_enabled: true
-  us500:
-    enabled: true
-    live_enabled: false
-  crudeoil:
-    enabled: true
-    live_enabled: false
-  eurusd:
-    enabled: true
-    live_enabled: false
-  gbpusd:
-    enabled: true
-    live_enabled: false
-  usdchf:
-    enabled: true
-    live_enabled: false
-  naturalgas:
-    enabled: true
-    live_enabled: false
-  silver:
-    enabled: true
-    live_enabled: false
-  usdjpy:
-    enabled: true
-    live_enabled: false
-  copper:
-    enabled: true
-    live_enabled: false
-  audusd:
-    enabled: true
-    live_enabled: false
-  uk100:
-    enabled: true
-    live_enabled: false
-  japan225:
-    enabled: true
-    live_enabled: false
-  hongkong50:
-    enabled: true
-    live_enabled: false
-  france40:
-    enabled: true
-    live_enabled: false
-  switzerland20:
-    enabled: true
-    live_enabled: false
-  eurjpy:
-    enabled: true
-    live_enabled: false
-  gbpjpy:
-    enabled: true
-    live_enabled: false
 timeframe: 1m
 lookback_bars: 400
 poll_seconds: 5
@@ -112,7 +61,7 @@ account:
   leverage: 20
 
 risk:
-  risk_per_trade_pct: 0.4
+  risk_per_trade_pct: 5.0
 
   # Cap estimated broker margin allocated to open CFDs at this percentage of equity.
   # This is an account-wide cap, not 30% per trade.
@@ -136,27 +85,10 @@ strategy:
   name: router
   default: ema_pullback
   per_market:
-    germany40: orb
     ustech100: ema_pullback
     wallstreet30: macd_trend
+    germany40: orb
     gold: rsi_reversion
-    us500: ema_atr
-    crudeoil: donchian
-    eurusd: sma_cross
-    gbpusd: triple_ema
-    usdchf: bollinger
-    naturalgas: keltner
-    silver: squeeze
-    usdjpy: stochastic
-    copper: cci
-    audusd: williams
-    uk100: adx_di
-    japan225: sar
-    hongkong50: supertrend
-    france40: vwap
-    switzerland20: momentum
-    eurjpy: engulfing
-    gbpjpy: inside_bar
 
   ema_pullback:
     slope_bars: 5
@@ -266,23 +198,6 @@ auto:
     - ema_pullback
     - macd_trend
     - rsi_reversion
-    - ema_atr
-    - donchian
-    - sma_cross
-    - triple_ema
-    - bollinger
-    - keltner
-    - squeeze
-    - stochastic
-    - cci
-    - williams
-    - adx_di
-    - sar
-    - supertrend
-    - vwap
-    - momentum
-    - engulfing
-    - inside_bar
 
 streamers:
   # Public YouTube creator consensus. It can confirm/veto a technical setup,
