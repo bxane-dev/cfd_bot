@@ -32,10 +32,6 @@ DEFAULT_STRATS = [
     "ema_pullback",
     "macd_trend",
     "rsi_reversion",
-    "supertrend",
-    "bollinger",
-    "vwap",
-    "donchian",
 ]
 
 
@@ -201,7 +197,7 @@ def main() -> None:
             lock=run_lock,
         )
         install_shared_desk(desk)
-        start_background(open_browser=True)
+        start_background(open_browser=os.getenv("CFD_DESKTOP", "").strip() != "1")
     else:
         print("web dashboard disabled")
 
