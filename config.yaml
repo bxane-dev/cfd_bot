@@ -34,6 +34,9 @@ execution:
       max_spread_stop_ratio: 0.25
       predictor_opposite_p: 0.68
       predictor_opposite_edge: 0.05
+    # Demo-only simulated risk. Live keeps the base risk setting below.
+    risk:
+      risk_per_trade_pct: 5.0
 
 # The desktop build deliberately exposes only these four markets.
 # Demo and live share exactly the same market universe.
@@ -61,7 +64,7 @@ account:
   leverage: 20
 
 risk:
-  risk_per_trade_pct: 5.0
+  risk_per_trade_pct: 0.4
 
   # Cap estimated broker margin allocated to open CFDs at this percentage of equity.
   # This is an account-wide cap, not 30% per trade.
