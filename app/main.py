@@ -713,6 +713,21 @@ def run_once(cfg: dict, mode: str, broker, risk: RiskManager, state: dict, marke
             note_decision(state, market, "duplicate_guard", why, status="blocked", terminal=True, bar_key=bar_key)
             continue
 
+        if mode == "live" and os.getenv("CFD_LIVE_READ_ONLY", "").strip() == "1":
+            why = "desktop LIVE monitor is read-only; order not sent"
+            print(f"  {market.name}: {why}")
+            note_decision(
+                state,
+                market,
+                "live_read_only",
+                why,
+                status="blocked",
+                terminal=True,
+                bar_key=bar_key,
+                extra={"side": sig.side, "lots": sized.lots, "strategy": str(configured_strategy)},
+            )
+            continue
+
         fill = broker.market_order(symbol, sig.side, sized.lots, sig.sl, sig.tp, cfg["broker"]["comment"])
         guard_row = state.setdefault("order_guard", {}).setdefault(guard_key, {})
         guard_row["status"] = "accepted" if fill.ok else "rejected_or_unknown"
@@ -819,7 +834,7 @@ def main() -> None:
     sync_market_rules(markets, broker, live_map)
     for m in markets:
         print(f"  {m.name}: {live_map[m.key]}")
-    risk = RiskManager(cfg)
+    risk = RiskManager(effective_trade_cfg(cfg, args.mode))
     state = load_state()
 
     while True:
