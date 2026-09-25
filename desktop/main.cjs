@@ -39,27 +39,15 @@ async function chooseMode() {
   const first = await dialog.showMessageBox({
     type: 'question',
     title: 'CFD Bot',
-    message: 'Choose trading mode',
-    detail: 'Demo and Live use the same four markets and the same 5% per-trade risk setting.',
-    buttons: ['Demo', 'Live', 'Cancel'],
+    message: 'Choose desktop mode',
+    detail: 'Demo uses the four-market trading simulator. Live opens the same desk in read-only monitoring mode.',
+    buttons: ['Demo', 'Live monitor', 'Cancel'],
     defaultId: 0,
     cancelId: 2,
     noLink: true
   });
   if (first.response === 2) return null;
-  if (first.response === 0) return 'demo';
-
-  const confirm = await dialog.showMessageBox({
-    type: 'warning',
-    title: 'Confirm LIVE trading',
-    message: 'LIVE mode can place real-money CFD orders.',
-    detail: 'Current target risk is 5% of equity per trade. CFDs are leveraged and losses can be rapid.',
-    buttons: ['Start LIVE', 'Cancel'],
-    defaultId: 1,
-    cancelId: 1,
-    noLink: true
-  });
-  return confirm.response === 0 ? 'live' : null;
+  return first.response === 0 ? 'demo' : 'live';
 }
 
 function backendCommand(resourcesRoot, mode, token, runtimeDir) {
@@ -67,6 +55,7 @@ function backendCommand(resourcesRoot, mode, token, runtimeDir) {
     ...process.env,
     MODE: mode,
     CFD_DESKTOP: '1',
+    CFD_LIVE_READ_ONLY: '1',
     CFD_WEB_TOKEN: token,
     CFD_ROOT: runtimeDir,
     CFD_WEB_ROOT: path.join(resourcesRoot, 'web'),
