@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+logs/
+node_modules/
+release/
+dist_backend/
+build/pyinstaller/
+build/icon.ico
+build/icon.png
