@@ -1,0 +1,331 @@
+mode: demo  # demo | live  (Capital.com)
+desk: strategy-market-21
+
+execution:
+  # Demo is deliberately more active for testing, but keeps the same
+  # four-market scope as LIVE so broker load stays predictable.
+  demo_market_scope: live
+  demo_frequency:
+    strategy:
+      ema_pullback:
+        slope_bars: 4
+        rsi_period: 14
+        rsi_lo: 30
+        rsi_hi: 70
+        touch_atr: 0.35
+      rsi_reversion:
+        period: 14
+        oversold: 30
+        overbought: 70
+        slope_bars: 8
+        max_slope_atr: 1.0
+      donchian:
+        length: 20
+        min_atr_move: 0.10
+      orb:
+        minutes: 15
+        expire_minutes: 120
+    news:
+      min_confidence: 0.68
+    streamers:
+      majority_threshold: 0.67
+    quality:
+      min_reward_risk: 1.00
+      max_spread_stop_ratio: 0.25
+      predictor_opposite_p: 0.68
+      predictor_opposite_edge: 0.05
+
+# One market assignment per registered strategy. The original four are
+# live-enabled; extra markets remain available for explicit demo research.
+markets:
+  germany40:
+    enabled: true
+    live_enabled: true
+  ustech100:
+    enabled: true
+    live_enabled: true
+  wallstreet30:
+    enabled: true
+    live_enabled: true
+  gold:
+    enabled: true
+    live_enabled: true
+  us500:
+    enabled: true
+    live_enabled: false
+  crudeoil:
+    enabled: true
+    live_enabled: false
+  eurusd:
+    enabled: true
+    live_enabled: false
+  gbpusd:
+    enabled: true
+    live_enabled: false
+  usdchf:
+    enabled: true
+    live_enabled: false
+  naturalgas:
+    enabled: true
+    live_enabled: false
+  silver:
+    enabled: true
+    live_enabled: false
+  usdjpy:
+    enabled: true
+    live_enabled: false
+  copper:
+    enabled: true
+    live_enabled: false
+  audusd:
+    enabled: true
+    live_enabled: false
+  uk100:
+    enabled: true
+    live_enabled: false
+  japan225:
+    enabled: true
+    live_enabled: false
+  hongkong50:
+    enabled: true
+    live_enabled: false
+  france40:
+    enabled: true
+    live_enabled: false
+  switzerland20:
+    enabled: true
+    live_enabled: false
+  eurjpy:
+    enabled: true
+    live_enabled: false
+  gbpjpy:
+    enabled: true
+    live_enabled: false
+timeframe: 1m
+lookback_bars: 400
+poll_seconds: 5
+snapshot_cache_seconds: 5
+timezone: Europe/Berlin
+
+account:
+  currency: EUR
+  leverage: 20
+
+risk:
+  risk_per_trade_pct: 0.4
+
+  # Cap estimated broker margin allocated to open CFDs at this percentage of equity.
+  # This is an account-wide cap, not 30% per trade.
+  max_portfolio_allocation_pct: 30.0
+
+  # Optional daily account halt. Keep false for no daily-loss cutoff.
+  # If enabled, max_daily_loss_pct is the threshold.
+  daily_loss_enabled: false
+  max_daily_loss_pct: 2.0
+
+  # Higher position caps. Lower these if you want tighter exposure limits.
+  max_open_positions: 12
+  max_positions_per_market: 4
+  max_index_positions: 8
+  min_stop_atr: 0.8
+  cooldown_bars_after_loss: 2
+
+strategy:
+  # router | auto | any strategy name
+  # auto uses last walk.py winners in logs/walk.json
+  name: router
+  default: ema_pullback
+  per_market:
+    germany40: orb
+    ustech100: ema_pullback
+    wallstreet30: macd_trend
+    gold: rsi_reversion
+    us500: ema_atr
+    crudeoil: donchian
+    eurusd: sma_cross
+    gbpusd: triple_ema
+    usdchf: bollinger
+    naturalgas: keltner
+    silver: squeeze
+    usdjpy: stochastic
+    copper: cci
+    audusd: williams
+    uk100: adx_di
+    japan225: sar
+    hongkong50: supertrend
+    france40: vwap
+    switzerland20: momentum
+    eurjpy: engulfing
+    gbpjpy: inside_bar
+
+  ema_pullback:
+    slope_bars: 5
+    rsi_period: 14
+    rsi_lo: 35
+    rsi_hi: 65
+    touch_atr: 0.25
+
+  rsi_reversion:
+    period: 14
+    oversold: 28
+    overbought: 72
+    slope_bars: 8
+    max_slope_atr: 0.9
+
+  donchian:
+    length: 20
+    min_atr_move: 0.15
+
+  macd_trend:
+    fast: 12
+    slow: 26
+    signal: 9
+
+  orb:
+    minutes: 15
+    expire_minutes: 90
+
+  sma_cross:
+    fast: 9
+    slow: 21
+  triple_ema:
+    a: 8
+    b: 21
+    c: 55
+  bollinger:
+    period: 20
+    k: 2.0
+  keltner:
+    period: 20
+    mult: 1.5
+  squeeze:
+    period: 20
+    bb_k: 2.0
+    kc_m: 1.5
+  stochastic:
+    k: 14
+    d: 3
+    oversold: 20
+    overbought: 80
+  cci:
+    period: 20
+    level: 100
+  williams:
+    period: 14
+  adx_di:
+    period: 14
+    min_adx: 20
+  sar:
+    step: 0.02
+    max_af: 0.2
+  supertrend:
+    period: 10
+    mult: 3.0
+  momentum:
+    period: 10
+
+  # defaults; each market still overrides EMA/ATR lengths in instruments.py
+  fast_ema: 12
+  slow_ema: 48
+  atr_period: 14
+  sl_atr: 1.6
+  tp_atr: 2.2
+
+broker:
+  magic: 260917
+  deviation_points: 30
+  comment: g40-us100-us30-xau
+
+news:
+  enabled: true
+  refresh_seconds: 60
+  max_headline_age_seconds: 10800  # only last 3h affects direction
+  min_abs_score: 0.35
+  min_confidence: 0.62
+  require_signal: false            # neutral/no-news does not block technical setups
+  veto_opposite: true              # strong opposite news blocks an entry
+  capital:
+    enabled: true
+    url: https://capital.com/en-int/news
+    max_items: 20
+
+auto:
+  # Startup should be fast and deterministic. Tune manually or opt in below.
+  tune_on_start: false
+  periodic_retune: false
+  retune_hours: 12
+  method: rolling
+  bars: 1000
+  train: 400
+  test: 100
+  embargo: 5
+  optuna: true
+  trials: 15
+  strategies:
+    - orb
+    - ema_pullback
+    - macd_trend
+    - rsi_reversion
+    - ema_atr
+    - donchian
+    - sma_cross
+    - triple_ema
+    - bollinger
+    - keltner
+    - squeeze
+    - stochastic
+    - cci
+    - williams
+    - adx_di
+    - sar
+    - supertrend
+    - vwap
+    - momentum
+    - engulfing
+    - inside_bar
+
+streamers:
+  # Public YouTube creator consensus. It can confirm/veto a technical setup,
+  # but it never creates an order by itself.
+  enabled: true
+  refresh_seconds: 60
+  max_results: 20
+  recent_only: true
+  max_age_hours: 12
+  min_sources: 3
+  majority_threshold: 0.60
+  require_consensus: false
+  veto_opposite: true
+  channels: []
+
+quality:
+  # Entry-quality filter: aims to skip weak setups rather than increase risk.
+  enabled: true
+  min_reward_risk: 1.05
+  max_spread_stop_ratio: 0.18
+  veto_strong_predictor_opposite: true
+  predictor_opposite_p: 0.62
+  predictor_opposite_edge: 0.03
+  use_walk_holdout: true
+  walk_max_age_hours: 72
+  min_holdout_trades: 3
+  min_holdout_profit_factor: 1.05
+  min_holdout_expectancy: 0.0
+
+predict:
+  enabled: true
+  filter: false  # log predictor, but use news + technicals for entry confirmation
+  horizon: 5
+  min_p: 0.55
+  min_edge: 0.0
+
+research:
+  # Backtest execution assumptions. Spread comes from each market's typical_spread.
+  # Slippage is applied adversely on both entry and exit as a fraction of spread.
+  slippage_spread_fraction: 0.10
+  max_hold_bars: 120
+  holdout_bars: 200
+  # A newly tuned strategy is only applied when the untouched holdout clears these.
+  min_holdout_trades: 3
+  min_holdout_profit_factor: 1.05
+  min_holdout_expectancy: 0.0
