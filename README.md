@@ -2,7 +2,7 @@
 
 Built by bxane
 
-A Capital.com CFD trading desk for **Germany 40 (DE40)**, **US Tech 100 (US100)**, **Wall Street 30 (US30)**, and **Gold (GOLD)**.
+A Capital.com CFD trading desk for exactly four markets: **US Tech 100 (US100)**, **Wall Street 30 (US30)**, **Germany 40 (DE40)**, and **Gold (GOLD)**.
 
 This hardened local build keeps the original strategy family while adding stricter execution, risk, restart, backtest, predictor, and news safeguards.
 
@@ -15,7 +15,10 @@ This packaged build adds **market-specific directional news scoring** and **pers
 
 ## What it does
 
+- Runs as a Windows Electron desktop application or from the Python launchers.
 - Connects to Capital.com demo or live REST API.
+- Uses the same four-market universe in demo and live.
+- Shows an **Explain** panel on each market card with the current decision reason, strategy logic, risk sizing, confirmations, and invalidation conditions.
 - Routes different strategies per market.
 - Applies ATR-based stops/targets and equity-based position sizing.
 - Enforces spread, position, and index-correlation limits; the daily-loss halt is optional.
@@ -111,7 +114,7 @@ python -m app.main --mode live
 
 Main settings live in `config.yaml`.
 
-- `risk.risk_per_trade_pct`: target cash risk per trade.
+- `risk.risk_per_trade_pct`: target cash risk per trade. This build defaults to **5%** in both demo and live. This is high risk for leveraged CFDs.
 - `risk.max_portfolio_allocation_pct`: estimated open broker-margin cap as a percentage of equity (default: 30%).
 - `risk.daily_loss_enabled`: turn the automatic daily-loss halt on/off.
 - `risk.max_daily_loss_pct`: daily halt threshold when enabled.
@@ -127,37 +130,22 @@ Main settings live in `config.yaml`.
 
 ## Strategy routing
 
-Default mapping:
+The desktop build ships with four market-specific defaults:
 
-| Market | Strategy |
-|---|---|
-| Germany 40 | `orb` |
-| US Tech 100 | `ema_pullback` |
-| Wall Street 30 | `macd_trend` |
-| Gold | `rsi_reversion` |
-| US 500 | `ema_atr` |
-| US Crude Oil | `donchian` |
-| EUR/USD | `sma_cross` |
-| GBP/USD | `triple_ema` |
-| USD/CHF | `bollinger` |
-| Natural Gas | `keltner` |
-| Silver | `squeeze` |
-| USD/JPY | `stochastic` |
-| Copper | `cci` |
-| AUD/USD | `williams` |
-| UK 100 | `adx_di` |
-| Japan 225 | `sar` |
-| Hong Kong 50 | `supertrend` |
-| France 40 | `vwap` |
-| Switzerland 20 | `momentum` |
-| EUR/JPY | `engulfing` |
-| GBP/JPY | `inside_bar` |
+| Market | Default strategy | Rationale |
+|---|---|---|
+| US Tech 100 | `ema_pullback` | trend-following pullback entries without chasing extension |
+| Wall Street 30 | `macd_trend` | momentum/trend confirmation |
+| Germany 40 | `orb` | opening-range breakout around the European cash open |
+| Gold | `rsi_reversion` | controlled mean-reversion with slope limits |
 
-Demo and live use the same four live-enabled markets by default, so demo trade frequency and exposure are representative of live. Set `execution.demo_market_scope` to `all` only when deliberately researching the 17 extra demo markets. Their Capital.com epics are resolved through the authenticated market-search API at startup, so the config does not depend on guessed epic codes.
+These are defaults, not guaranteed “best” strategies. Walk-forward/holdout validation remains available so strategy changes can be tested against broker history before being applied.
 
-The bot polls the broker every 5 seconds by default, refreshes the dashboard every 3 seconds, and only evaluates a new candle once. News and streamer feeds refresh every 60 seconds, with Capital.com headlines included in the news desk. Trading sessions are Monday–Friday in this build. Germany 40's ORB strategy forms its opening range from 08:00–08:15 and can enter on a valid breakout until 09:30; after that, the ORB entry window is closed even though the market session remains enabled.
+## Windows Electron release
 
-The registry also contains Donchian, Bollinger, Keltner, stochastic, CCI, Williams %R, ADX/DI, SAR, Supertrend, VWAP, momentum, engulfing, inside-bar, and other variants.
+Run `build.bat`. It generates the app icon, bundles the Python backend with PyInstaller, installs Electron dependencies, and produces an NSIS installer under `release\`.
+
+The Electron app asks for **Demo** or **Live** at startup. Live mode requires a second explicit confirmation. Runtime configuration, logs, and `.env` are kept in the app user-data folder.
 
 ## Walk-forward analysis
 
