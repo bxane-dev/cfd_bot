@@ -12,7 +12,7 @@ import yaml
 from dotenv import load_dotenv
 
 from instruments import MARKETS, Market, apply_broker_details
-from main import ROOT, load_cfg, make_broker
+from main import ROOT, enabled_markets, load_cfg, make_broker
 from strategy.registry import STRATEGIES
 from strategy.tune import apply_params, suggest
 
@@ -512,7 +512,12 @@ def main() -> None:
     risk_pct = float(cfg["risk"]["risk_per_trade_pct"]) / 100.0
     res = {"1m": "MINUTE", "5m": "MINUTE_5", "15m": "MINUTE_15"}.get(cfg.get("timeframe", "1m"), "MINUTE")
     names = [n for n in args.strategy if n not in ("router", "combo", "auto")]
-    markets = [MARKETS[k] for k in (args.only or MARKETS)]
+    available = enabled_markets(cfg, args.mode)
+    if args.only:
+        wanted = set(args.only)
+        markets = [m for m in available if m.key in wanted]
+    else:
+        markets = available
 
     print(f"method={args.method} train={args.train} test={args.test} embargo={args.embargo} holdout={args.holdout} bars={args.bars} optuna={args.optuna} trials={args.trials}")
     print(f"{'market':14} {'strat':14} {'n':>4} {'win%':>6} {'pnl':>10} {'dd':>8} {'pf':>5} {'exp':>8} {'hold':>6}  score")
