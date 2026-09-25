@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 
 from main import (
     ROOT,
+    effective_trade_cfg,
     capital_map,
     enabled_markets,
     ensure_logs,
@@ -175,7 +176,8 @@ def main() -> None:
     broker = make_broker(cfg_now, args.mode, markets)
     live_map = capital_map(markets, broker)
     sync_market_rules(markets, broker, live_map)
-    risk = RiskManager(cfg_now)
+    runtime_cfg = effective_trade_cfg(cfg_now, args.mode)
+    risk = RiskManager(runtime_cfg)
     state = load_state()
 
     loop_event = threading.Event()
@@ -186,7 +188,7 @@ def main() -> None:
         from desk import Desk, install_shared_desk
 
         desk = Desk(
-            cfg=cfg_now,
+            cfg=runtime_cfg,
             mode=args.mode,
             markets=markets,
             broker=broker,
@@ -229,9 +231,10 @@ def main() -> None:
             markets = enabled_markets(cfg_now, args.mode)
             live_map = capital_map(markets, broker)
             sync_market_rules(markets, broker, live_map)
-            risk = RiskManager(cfg_now)
+            runtime_cfg = effective_trade_cfg(cfg_now, args.mode)
+            risk = RiskManager(runtime_cfg)
             if desk is not None:
-                desk.cfg = cfg_now
+                desk.cfg = runtime_cfg
                 desk.markets = markets
                 desk.live_map = live_map
                 desk.risk = risk
