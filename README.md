@@ -1,6 +1,6 @@
 # CFD Bot
 
-Built by **@bone** (username **@boneveil**)
+Built by bxane
 
 A Capital.com CFD trading desk for **Germany 40 (DE40)**, **US Tech 100 (US100)**, **Wall Street 30 (US30)**, and **Gold (GOLD)**.
 
